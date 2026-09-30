@@ -1,0 +1,17 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /puzzles/{puzzleId} {
+      // Anyone with the link can open one puzzle
+      allow get: if true;
+      // Nobody can browse the list of all puzzles
+      allow list: if false;
+      // Anyone can create a puzzle, but it must have exactly 4 categories
+      allow create: if request.resource.data.keys().hasOnly(['categories', 'createdAt'])
+                    && request.resource.data.categories is list
+                    && request.resource.data.categories.size() == 4;
+      // Puzzles can't be edited or deleted after creation
+      allow update, delete: if false;
+    }
+  }
+}
