@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
+      - run: npm install --legacy-peer-deps
       - run: npx ng build --base-href ./
       - uses: actions/upload-pages-artifact@v3
         with:
