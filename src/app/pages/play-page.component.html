@@ -9,7 +9,7 @@
   } @else {
     <header class="top">
       <h1>Find the 4 groups</h1>
-      <p class="lede">Pick 4 that belong together, then submit.</p>
+      <p class="lede">Pick 4 that belong together, then press Submit.</p>
     </header>
 
     <div class="toast" role="status" aria-live="polite" [class.show]="!!message()">{{ message() }}</div>
@@ -18,16 +18,26 @@
       @for (ci of solved(); track ci) {
         <div class="solved" [attr.data-color]="categoryOf(ci).color">
           <strong>{{ categoryOf(ci).name }}</strong>
-          <span>{{ namesOf(ci) }}</span>
+          <div class="solved-tiles">
+            @for (t of categoryOf(ci).tiles; track $index) {
+              <div class="solved-tile">
+                <img [src]="t.image" [alt]="t.name" />
+                <span>{{ t.name }}</span>
+              </div>
+            }
+          </div>
         </div>
       }
 
       @if (!finished()) {
-        <div class="grid" [class.shake]="shaking()">
+        <div class="grid">
           @for (tile of tiles(); track tile.id) {
             <button
               class="tile"
               [class.selected]="isSelected(tile)"
+              [class.pop]="checking() && isSelected(tile)"
+              [class.wrong]="wrong() && isSelected(tile)"
+              [style.animation-delay.ms]="checking() && isSelected(tile) ? popDelay(tile) : 0"
               (click)="toggle(tile)"
               [attr.aria-pressed]="isSelected(tile)"
             >
@@ -42,9 +52,9 @@
     @if (!finished()) {
       <p class="count">Guesses: {{ guesses() }}</p>
       <div class="controls">
-        <button class="btn" (click)="shuffleTiles()">Shuffle</button>
-        <button class="btn" (click)="deselectAll()" [disabled]="selected().size === 0">Deselect all</button>
-        <button class="btn primary" (click)="submit()" [disabled]="selected().size !== 4">Submit</button>
+        <button class="btn" (click)="shuffleTiles()" [disabled]="busy()">Shuffle</button>
+        <button class="btn" (click)="deselectAll()" [disabled]="busy() || selected().size === 0">Deselect all</button>
+        <button class="btn primary" (click)="submit()" [disabled]="busy() || selected().size !== 4">Submit</button>
       </div>
     } @else {
       <section class="end">

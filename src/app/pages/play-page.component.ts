@@ -10,6 +10,11 @@ interface PlayTile {
   image: string;
 }
 
+// Animation timings (milliseconds)
+const POP_STEP = 120;      // delay between each tile popping
+const POP_DURATION = 260;  // how long one pop takes
+const SHAKE_DURATION = 450;
+
 function shuffle<T>(list: T[]): T[] {
   const a = [...list];
   for (let i = a.length - 1; i > 0; i--) {
@@ -29,6 +34,7 @@ export class PlayPageComponent implements OnInit {
   private puzzles = inject(PuzzleService);
   private messageTimer: any;
   private pastGuesses = new Set<string>();
+  private popOrder = new Map<string, number>();
 
   loading = signal(true);
   error = signal('');
@@ -39,7 +45,10 @@ export class PlayPageComponent implements OnInit {
   solved = signal<number[]>([]);             // category indexes, in the order they were found
   guesses = signal(0);
   message = signal('');
-  shaking = signal(false);
+
+  checking = signal(false); // tiles are popping one by one
+  wrong = signal(false);    // tiles are shaking with a red border
+  busy = computed(() => this.checking() || this.wrong());
 
   finished = computed(() => this.solved().length === 4);
 
@@ -52,11 +61,8 @@ export class PlayPageComponent implements OnInit {
         return;
       }
       this.puzzle.set(p);
-      const all = p.categories.flatMap((c, ci) =>
-        c.tiles.map((t, ti) => ({ id: `${ci}-${ti}`, cat: ci, name: t.name, image: t.image })),
-      );
-      this.tiles.set(shuffle(all));
-    } catch (e: any) {
+      this.tiles.set(shuffle(this.allTiles(p)));
+    } catch {
       this.error.set('Could not load this connection. Check your internet and refresh the page.');
     } finally {
       this.loading.set(false);
@@ -67,7 +73,12 @@ export class PlayPageComponent implements OnInit {
     return this.selected().has(tile.id);
   }
 
+  popDelay(tile: PlayTile) {
+    return (this.popOrder.get(tile.id) ?? 0) * POP_STEP;
+  }
+
   toggle(tile: PlayTile) {
+    if (this.busy()) return;
     const next = new Set(this.selected());
     if (next.has(tile.id)) {
       next.delete(tile.id);
@@ -78,14 +89,17 @@ export class PlayPageComponent implements OnInit {
   }
 
   deselectAll() {
+    if (this.busy()) return;
     this.selected.set(new Set());
   }
 
   shuffleTiles() {
+    if (this.busy()) return;
     this.tiles.set(shuffle(this.tiles()));
   }
 
   submit() {
+    if (this.busy()) return;
     const ids = [...this.selected()];
     if (ids.length !== 4) return;
 
@@ -97,31 +111,30 @@ export class PlayPageComponent implements OnInit {
     this.pastGuesses.add(key);
     this.guesses.update(n => n + 1);
 
-    // Count how many of the selected tiles are in each category
+    // Selected tiles in the order they appear on the grid, so they pop left to right, top to bottom
     const picked = this.tiles().filter(t => this.selected().has(t.id));
-    const counts = new Map<number, number>();
-    for (const t of picked) counts.set(t.cat, (counts.get(t.cat) ?? 0) + 1);
-    const best = Math.max(...counts.values());
+    this.popOrder = new Map(picked.map((t, i) => [t.id, i]));
+    this.checking.set(true);
 
-    if (best === 4) {
-      this.solveCategory(picked[0].cat);
-      // Only one group left? Reveal it automatically.
-      if (this.solved().length === 3) {
-        this.solveCategory(this.tiles()[0].cat);
+    setTimeout(() => {
+      this.checking.set(false);
+
+      const counts = new Map<number, number>();
+      for (const t of picked) counts.set(t.cat, (counts.get(t.cat) ?? 0) + 1);
+      const best = Math.max(...counts.values());
+
+      if (best === 4) {
+        this.solveCategory(picked[0].cat);
+      } else {
+        this.wrong.set(true);
+        this.flash(best === 3 ? 'One away!' : 'Not quite');
+        setTimeout(() => this.wrong.set(false), SHAKE_DURATION);
       }
-    } else {
-      this.shaking.set(true);
-      setTimeout(() => this.shaking.set(false), 450);
-      this.flash(best === 3 ? 'One away!' : 'Not quite');
-    }
+    }, POP_STEP * 3 + POP_DURATION + 120);
   }
 
   categoryOf(ci: number) {
     return this.puzzle()!.categories[ci];
-  }
-
-  namesOf(ci: number) {
-    return this.categoryOf(ci).tiles.map(t => t.name).join(', ');
   }
 
   playAgain() {
@@ -131,10 +144,12 @@ export class PlayPageComponent implements OnInit {
     this.solved.set([]);
     this.guesses.set(0);
     this.selected.set(new Set());
-    this.tiles.set(
-      shuffle(p.categories.flatMap((c, ci) =>
-        c.tiles.map((t, ti) => ({ id: `${ci}-${ti}`, cat: ci, name: t.name, image: t.image })),
-      )),
+    this.tiles.set(shuffle(this.allTiles(p)));
+  }
+
+  private allTiles(p: Puzzle): PlayTile[] {
+    return p.categories.flatMap((c, ci) =>
+      c.tiles.map((t, ti) => ({ id: `${ci}-${ti}`, cat: ci, name: t.name, image: t.image })),
     );
   }
 

@@ -63,37 +63,83 @@
 }
 .tile.selected .name { background: var(--ink); color: #fff; }
 
-.grid.shake .tile.selected { animation: shake 0.4s; }
+/* Submit: each selected tile pops up one after another */
+.tile.pop { animation: pop 0.26s ease-out both; }
+@keyframes pop {
+  0%   { transform: translateY(-3px) scale(1); }
+  45%  { transform: translateY(-14px) scale(1.07); }
+  100% { transform: translateY(-3px) scale(1); }
+}
+
+/* Wrong guess: all shake together with a red border, then it goes away */
+.tile.wrong {
+  border-color: var(--red);
+  animation: shake 0.45s;
+  transition: none;
+}
+.tile.wrong .name { background: var(--red); }
 @keyframes shake {
   0%, 100% { translate: 0; }
-  20%, 60% { translate: -6px; }
-  40%, 80% { translate: 6px; }
+  15%, 55% { translate: -7px; }
+  35%, 75% { translate: 7px; }
 }
 
 /* ---------- solved rows ---------- */
 
 .solved {
   background: var(--c);
-  border-radius: 8px;
-  padding: 16px 12px;
+  border-radius: 12px;
+  padding: 12px 10px 14px;
   text-align: center;
-  animation: reveal 0.35s ease-out;
+  animation: snap 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.3);
 }
 .solved strong {
   display: block;
   font-family: var(--display);
-  font-size: 1.4rem;
+  font-size: 1.5rem;
   line-height: 1.1;
+  margin-bottom: 10px;
+  text-transform: uppercase;
 }
-.solved span { font-size: 0.95rem; }
 .solved[data-color='yellow'] { --c: var(--yellow); }
 .solved[data-color='green']  { --c: var(--green); }
 .solved[data-color='blue']   { --c: var(--blue); }
 .solved[data-color='purple'] { --c: var(--purple); }
 
-@keyframes reveal {
-  from { transform: scale(0.94); opacity: 0; }
-  to   { transform: scale(1); opacity: 1; }
+.solved-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.solved-tile { position: relative; min-width: 0; }
+.solved-tile img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.4);
+}
+.solved-tile span {
+  display: block;
+  margin: -14px 2px 0;
+  position: relative;
+  padding: 4px 4px;
+  border-radius: 6px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@keyframes snap {
+  0%   { transform: scale(0.9); opacity: 0; }
+  60%  { transform: scale(1.03); opacity: 1; }
+  100% { transform: scale(1); }
 }
 
 /* ---------- controls ---------- */
@@ -131,11 +177,12 @@
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
 @media (max-width: 420px) {
-  .grid { gap: 5px; }
+  .grid, .solved-tiles { gap: 5px; }
   .tile .name { font-size: 0.75rem; min-height: calc(0.75rem * 1.2 * 2 + 11px); }
+  .solved-tile span { font-size: 0.7rem; padding: 3px 2px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .tile, .toast { transition: none; }
-  .grid.shake .tile.selected, .solved { animation: none; }
+  .tile.pop, .tile.wrong, .solved { animation: none; }
 }
