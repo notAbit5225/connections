@@ -1,0 +1,60 @@
+<main class="page">
+  @if (loading()) {
+    <p class="status">Loading the connection…</p>
+  } @else if (error()) {
+    <div class="status">
+      <p>{{ error() }}</p>
+      <a class="btn primary" href="#/create">Make your own</a>
+    </div>
+  } @else {
+    <header class="top">
+      <h1>Find the 4 groups</h1>
+      <p class="lede">Pick 4 that belong together, then submit.</p>
+    </header>
+
+    <div class="toast" role="status" aria-live="polite" [class.show]="!!message()">{{ message() }}</div>
+
+    <div class="board">
+      @for (ci of solved(); track ci) {
+        <div class="solved" [attr.data-color]="categoryOf(ci).color">
+          <strong>{{ categoryOf(ci).name }}</strong>
+          <span>{{ namesOf(ci) }}</span>
+        </div>
+      }
+
+      @if (!finished()) {
+        <div class="grid" [class.shake]="shaking()">
+          @for (tile of tiles(); track tile.id) {
+            <button
+              class="tile"
+              [class.selected]="isSelected(tile)"
+              (click)="toggle(tile)"
+              [attr.aria-pressed]="isSelected(tile)"
+            >
+              <img [src]="tile.image" [alt]="tile.name" />
+              <span class="name">{{ tile.name }}</span>
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    @if (!finished()) {
+      <p class="count">Guesses: {{ guesses() }}</p>
+      <div class="controls">
+        <button class="btn" (click)="shuffleTiles()">Shuffle</button>
+        <button class="btn" (click)="deselectAll()" [disabled]="selected().size === 0">Deselect all</button>
+        <button class="btn primary" (click)="submit()" [disabled]="selected().size !== 4">Submit</button>
+      </div>
+    } @else {
+      <section class="end">
+        <h2>You got all 4 groups</h2>
+        <p>It took you {{ guesses() }} {{ guesses() === 1 ? 'guess' : 'guesses' }}.</p>
+        <div class="controls">
+          <button class="btn" (click)="playAgain()">Play again</button>
+          <a class="btn primary" href="#/create">Make your own</a>
+        </div>
+      </section>
+    }
+  }
+</main>

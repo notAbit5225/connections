@@ -1,0 +1,77 @@
+<main class="page">
+  <header class="top">
+    <h1>Make a connection</h1>
+    <p class="lede">Upload 16 pictures, name them, and sort them into 4 groups. Your friend has to figure out the groups.</p>
+  </header>
+
+  @if (shareLink()) {
+    <section class="done-card">
+      <h2>Your connection is ready</h2>
+      <p>Send this link to your friend.</p>
+      <div class="link-row">
+        <input class="link-box" [value]="shareLink()" readonly (focus)="$any($event.target).select()" aria-label="Share link" />
+        <button class="btn primary" (click)="copyLink()">{{ copied() ? 'Copied' : 'Copy link' }}</button>
+      </div>
+      <div class="done-actions">
+        @if (canShare) {
+          <button class="btn" (click)="share()">Share</button>
+        }
+        <a class="btn" [href]="shareLink()" target="_blank" rel="noopener">Try it yourself</a>
+        <button class="btn ghost" (click)="startOver()">Make another</button>
+      </div>
+    </section>
+  } @else {
+    @for (cat of puzzle().categories; track cat.color; let ci = $index) {
+      <section class="group" [attr.data-color]="cat.color">
+        <input
+          class="group-name"
+          [class.invalid]="showErrors() && !cat.name.trim()"
+          [value]="cat.name"
+          (input)="setCategoryName(ci, $any($event.target).value)"
+          placeholder="Category name"
+          maxlength="60"
+          [attr.aria-label]="cat.color + ' category name'"
+        />
+        <div class="tiles">
+          @for (tile of cat.tiles; track $index; let ti = $index) {
+            <div class="tile">
+              <label class="photo" [class.invalid]="showErrors() && !tile.image" [class.filled]="!!tile.image">
+                <input type="file" accept="image/*" (change)="onFile(ci, ti, $event)" hidden />
+                @if (isBusy(ci, ti)) {
+                  <span class="hint">Loading…</span>
+                } @else if (tile.image) {
+                  <img [src]="tile.image" [alt]="tile.name || 'Picture'" />
+                } @else {
+                  <span class="hint">+ Photo</span>
+                }
+              </label>
+              @if (tile.image && !isBusy(ci, ti)) {
+                <button class="remove" (click)="removeImage(ci, ti)" aria-label="Remove photo">×</button>
+              }
+              <input
+                class="tile-name"
+                [class.invalid]="showErrors() && !tile.name.trim()"
+                [value]="tile.name"
+                (input)="setTileName(ci, ti, $any($event.target).value)"
+                placeholder="Name"
+                maxlength="30"
+                aria-label="Picture name"
+              />
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    @if (error()) {
+      <p class="error" role="alert">{{ error() }}</p>
+    }
+
+    <div class="actions">
+      <button class="btn ghost" (click)="clearAll()">Clear all</button>
+      <button class="btn primary big" (click)="done()" [disabled]="saving()">
+        {{ saving() ? 'Saving…' : 'Done, get my link' }}
+      </button>
+    </div>
+  }
+</main>

@@ -1,0 +1,141 @@
+.page {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+
+.top h1 {
+  font-family: var(--display);
+  font-size: clamp(2.2rem, 7vw, 3.2rem);
+  line-height: 1;
+  margin: 0 0 8px;
+}
+
+.lede {
+  margin: 0 0 24px;
+  color: var(--muted);
+}
+
+/* ---------- category groups ---------- */
+
+.group {
+  background: var(--c);
+  border-radius: var(--radius);
+  padding: 12px;
+  margin-bottom: 14px;
+}
+.group[data-color='yellow'] { --c: var(--yellow); }
+.group[data-color='green']  { --c: var(--green); }
+.group[data-color='blue']   { --c: var(--blue); }
+.group[data-color='purple'] { --c: var(--purple); }
+
+.group-name {
+  width: 100%;
+  font-family: var(--display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.55);
+}
+.group-name::placeholder { color: rgba(20, 33, 61, 0.5); font-weight: 600; }
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.tile { position: relative; min-width: 0; }
+
+.photo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border: 2px dashed rgba(20, 33, 61, 0.4);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  overflow: hidden;
+}
+.photo.filled { border-style: solid; border-color: transparent; }
+.photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo:focus-within { outline: 3px solid var(--orange); outline-offset: 2px; }
+
+.hint { font-size: 0.85rem; font-weight: 600; color: rgba(20, 33, 61, 0.7); }
+
+.remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(20, 33, 61, 0.8);
+  color: #fff;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.tile-name {
+  width: 100%;
+  margin-top: 6px;
+  padding: 6px 6px;
+  font-size: 16px; /* 16px stops iPhones from zooming in */
+  text-align: center;
+  border: 2px solid transparent;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.invalid { border-color: var(--red) !important; border-style: solid !important; }
+
+/* ---------- bottom ---------- */
+
+.error {
+  color: var(--red);
+  font-weight: 600;
+  margin: 16px 0 0;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/* ---------- link screen ---------- */
+
+.done-card {
+  background: var(--card);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+.done-card h2 { font-family: var(--display); font-size: 1.8rem; margin: 0 0 4px; }
+.done-card p { margin: 0 0 14px; color: var(--muted); }
+
+.link-row { display: flex; gap: 8px; }
+.link-box {
+  flex: 1;
+  min-width: 0;
+  padding: 10px;
+  font-size: 16px;
+  border: 2px solid var(--line);
+  border-radius: 6px;
+  background: var(--paper);
+}
+
+.done-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+
+@media (max-width: 420px) {
+  .tiles { gap: 6px; }
+  .tile-name { font-size: 16px; padding: 5px 2px; }
+  .link-row { flex-direction: column; }
+}
